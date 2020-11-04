@@ -15,9 +15,14 @@ export const deleteProduct = (id) => {
     }
 }
 
-export const fetchProducts = () => {
+export const fetchProducts = (gender,category) => {
+
     return async (dispatch) => {
-        productsRef.orderBy('updated_at', 'desc').get()
+        let query =productsRef.orderBy('updated_at', 'desc');
+        query = (gender !== "") ? query.where('gender', '==' ,gender):query;
+        query = (category !== "") ? query.where('category', '==' ,category):query;
+        query
+            .get()
             .then( snapshots =>{
                 const productList = []
                 snapshots.forEach(snapshots => {
@@ -44,7 +49,7 @@ export const orderProduct = (productInCart,amount) => {
             const snapshot = await productsRef.doc(product.productId).get();
             const sizes = snapshot.data().sizes;
 
-            const updatedSizes = sizes.map(size => {
+            const updateSizes = sizes.map(size => {
                 if(size.size === product.size){
                     if(size.quantity === 0){
                         soldOutProducts.push(product.name);
@@ -69,13 +74,13 @@ export const orderProduct = (productInCart,amount) => {
 
             batch.update(
                 productsRef.doc(product.productId),
-                    {sizes:updatedSizes}
+                    {sizes:updateSizes}
             );
 
             batch.delete(
                 userRef.collection('cart').doc(product.cartId)
             );
-
+        }
             if(soldOutProducts.length > 0){
                 const errorMessage = (soldOutProducts.length > 1) ?
                                         soldOutProducts.join('と') :
@@ -94,7 +99,7 @@ export const orderProduct = (productInCart,amount) => {
                             created_at: timestamp,
                             id: orderRef.id,
                             products: products,
-                            shippingDate: shippingDate,
+                            shipping_date: shippingDate,
                             updated_at: timestamp
                         }
 
@@ -105,8 +110,6 @@ export const orderProduct = (productInCart,amount) => {
                         return false
                     })
             }
-        }
-
     }
 }
 

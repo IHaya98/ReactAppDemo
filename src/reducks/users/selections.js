@@ -21,3 +21,8 @@ export const getUsername = createSelector(
     [usersSelector],
     state => state.username
 )
+
+export const getOrdersHistory = createSelector(
+    [usersSelector],
+    state => state.orders
+)

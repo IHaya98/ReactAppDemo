@@ -1,6 +1,6 @@
 import {push} from 'connected-react-router'
 import {auth, db, FirebaseTimestamp} from '../../firebase/index';
-import { fetchProductsInCartAction, signInAction, signOutAction } from './actions';
+import { fetchProductsInCartAction, signInAction, signOutAction ,fetchOrdersHistoryAction} from './actions';
 
 export const addProductToCart = (addedProduct) => {
     return async (dispatch,getState) => {
@@ -9,6 +9,26 @@ export const addProductToCart = (addedProduct) => {
         addedProduct['cartId'] = cartRef.id;
         await cartRef.set(addedProduct)
         dispatch(push('/'));
+    }
+}
+
+export const fetchOrdersHistory = () => {
+    return async (dispatch,getState) => {
+        const uid = getState().users.uid;
+        const list = [];
+
+        db.collection('users').doc(uid)
+            .collection('orders')
+            .orderBy('updated_at', 'desc')
+            .get()
+            .then((snapshots) => {
+                snapshots.forEach(snapshot => {
+                    const data = snapshot.data();
+                    list.push(data);
+                })
+
+                dispatch(fetchOrdersHistoryAction(list));
+            })
     }
 }
 
@@ -45,7 +65,7 @@ export const listenAuthState = () => {
 
 export const resetPassword = (email) => {
     return async(dispatch) =>{
-        if(email ===""){
+        if(email === ""){
             alert("必須項目が未入力です")
             return false
         }else{
